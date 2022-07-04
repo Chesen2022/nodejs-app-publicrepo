@@ -1,0 +1,45 @@
+node{
+  stage('CodeCheckout'){
+    sh "echo running ebay nodeJS project" 
+    git 'https://github.com/Chesen2022/nodejs-app-publicrepo'
+  }
+  stage('UnitTest'){
+      sh "echo testing application"
+    //sh "npm test"
+  }
+  stage('Build')
+  {
+   nodejs(nodeJSInstallationName: 'nodejs18') // This command will iclude npm version18 in all builds
+   {
+       sh "echo creating build artifacts"
+    sh "npm install"
+    }
+  }
+  stage('CodeQuality'){
+    sh "echo CodeQualityReport"
+    nodejs(nodeJSInstallationName: 'nodejs18') {
+        //sh "please edit sonar-project.js file in github nodejs app "
+        //sh "include sonar url, create a token from sonarqube --> administration --> security --> user --> admin create token"
+        sh 'npm run sonar'
+    }
+  }
+    stage('UploadArtifacts'){
+    sh "echo npm packages uploaded to nexus"
+    nodejs(nodeJSInstallationName: 'nodejs18') {
+       sh 'npm publish' // authentication error, we commented this line during class demo
+        // Jenkins nexus intergration 
+        // password = admin123  username = admin 
+        // command below is used to generate token for paswword and username, it can be used for authenticating in nexus server
+        // echo -n 'admin:admin123' | openssl base64
+
+  }
+      
+}
+ stage('deployment'){
+    sh "echo Deploying applications"
+    nodejs(nodeJSInstallationName: 'nodejs18') {
+        sh 'npm start'
+    }
+  }
+
+}
